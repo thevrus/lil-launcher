@@ -7,6 +7,7 @@
     <string name="hidden_apps">Hidden apps</string>
     <string name="show">Show</string>
     <string name="network">Network</string>
+    <string name="inputs">Inputs</string>
     <string name="net_ethernet">Ethernet</string>
     <string name="net_wifi">Wi-Fi</string>
     <string name="net_offline">No internet</string>

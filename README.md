@@ -6,7 +6,7 @@
 ![Android 9+](https://img.shields.io/badge/Android%20TV-9%2B-3ddc84)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
-![Lil Launcher home screen](docs/home.jpg)
+![Lil Launcher home screen](docs/home.png)
 
 ## Features
 
@@ -15,12 +15,17 @@
 - **Quiet header.** Time, date and current weather (Open-Meteo, no API key). It fades away as you scroll.
 - **Network at a glance.** Focus the globe for connection type, VPN exit country and a quick speed test with the video quality it supports.
 - **Screensaver.** The same photos full screen, with a slow drift, the time and the place name.
+- **Inputs** on TV sets: a button for HDMI ports and connected devices, shown only when the TV has them.
 - **Sleep** from the gear menu (hold Select on the gear).
 - **Lightweight.** No Leanback, no Compose, no tracking. Network work only happens when it is needed.
 
 | Network | Screensaver |
 | --- | --- |
-| ![Network popover](docs/network.jpg) | ![Screensaver](docs/screensaver.jpg) |
+| ![Network popover](docs/network.png) | ![Screensaver](docs/screensaver.png) |
+
+## Debloat your TV too
+
+Lil Launcher pairs well with a debloated system: no sponsored rows, no telemetry services, more memory for what you watch. [DEBLOAT.md](DEBLOAT.md) explains why and how, lists which packages are safe to disable on Google TV, Shield, Sony and TCL, and includes a copy-paste prompt that lets Claude Code or any coding assistant do it for you, reversibly.
 
 ## Works on
 

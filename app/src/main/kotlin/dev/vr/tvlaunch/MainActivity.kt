@@ -9,6 +9,10 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
+import android.media.tv.TvContract
+import android.media.tv.TvInputInfo
+import android.media.tv.TvInputManager
 import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
@@ -242,6 +246,26 @@ class MainActivity : Activity() {
         caption.postDelayed(idle, IDLE_MS)
     }
 
+    // Inputs: HDMI and other passthrough ports, for TVs whose stock launcher was the only way to switch.
+    private lateinit var inputBtn: View
+    private var inputs: List<TvInputInfo> = emptyList()
+
+    private fun updateInputs() = io.execute {
+        val list = if (!packageManager.hasSystemFeature(PackageManager.FEATURE_LIVE_TV)) emptyList()
+            else getSystemService(TvInputManager::class.java)?.tvInputList.orEmpty().filter { it.isPassthroughInput && !it.isHidden(this) }
+        inputBtn.post { inputs = list; inputBtn.visibility = if (list.isEmpty()) View.GONE else View.VISIBLE }
+    }
+
+    /** The TV's own input app tunes to a passthrough channel URI; HDMI-CEC devices carry their own names. */
+    private fun inputMenu() {
+        val list = inputs.takeIf { it.isNotEmpty() } ?: return
+        AlertDialog.Builder(this).setTitle(R.string.inputs)
+            .setItems(list.map { (it.loadCustomLabel(this) ?: it.loadLabel(this)).toString() }.toTypedArray()) { _, i ->
+                try { startActivity(Intent(Intent.ACTION_VIEW, TvContract.buildChannelUriForPassthroughInput(list[i].id))) }
+                catch (_: android.content.ActivityNotFoundException) { }
+            }.show()
+    }
+
     private fun options() {
         // Without the secure-settings grant, open the settings where the sleep service can be switched on by hand.
         val opts = mutableListOf<Pair<Int, () -> Unit>>(R.string.sleep to { if (!SleepService.sleep(this)) startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) })
@@ -270,6 +294,7 @@ class MainActivity : Activity() {
             setOnLongClickListener { options(); true }
         }
 
+        inputBtn = findViewById<View>(R.id.inputBtn).apply { setOnClickListener { inputMenu() } }
         popover = findViewById(R.id.popover); popNet = findViewById(R.id.popNet); popVpn = findViewById(R.id.popVpn); popRate = findViewById(R.id.popRate)
         vpnDot = findViewById(R.id.vpnDot)
         findViewById<View>(R.id.netBtn).apply {
@@ -304,6 +329,7 @@ class MainActivity : Activity() {
             registerDefaultNetworkCallback(netWatch)
         }
         updateWeather()
+        updateInputs()
         poke()
         refresh()
     }

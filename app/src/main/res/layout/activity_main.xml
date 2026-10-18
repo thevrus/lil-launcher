@@ -23,6 +23,12 @@
                 android:format12Hour="@string/date_format" android:format24Hour="@string/date_format" android:layout_marginStart="11dp"/>
         <TextView android:id="@+id/weather" style="@style/Text.Small" android:layout_width="0dp" android:layout_weight="1"
                 android:layout_height="wrap_content" android:layout_marginStart="6dp" android:maxLines="1"/>
+        <!-- TVs with HDMI ports only; hidden on boxes like the Shield. -->
+        <ImageView android:id="@+id/inputBtn"
+                android:layout_width="36dp" android:layout_height="36dp" android:padding="8dp" android:layout_marginEnd="10dp"
+                android:src="@drawable/ic_input" android:background="@drawable/gear_bg" android:tint="@color/gear_tint"
+                android:focusable="true" android:focusableInTouchMode="true" android:contentDescription="@string/inputs"
+                android:visibility="gone"/>
         <FrameLayout android:layout_width="36dp" android:layout_height="36dp" android:layout_marginEnd="10dp">
             <ImageView android:id="@+id/netBtn"
                 android:layout_width="36dp" android:layout_height="36dp" android:padding="8dp"
