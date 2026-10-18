@@ -193,17 +193,25 @@ class MainActivity : Activity() {
     // Weather: current conditions beside the date, refreshed at most hourly.
     private lateinit var weather: TextView
 
+    /**
+     * Android 14 regional preferences put the temperature unit on the locale as the "mu" extension. Older systems
+     * have no such setting, and the region alone is a poor guess, so they stay on Celsius.
+     */
+    private fun fahrenheit() = java.util.Locale.getDefault(java.util.Locale.Category.FORMAT).getUnicodeLocaleType("mu") == "fahrenhe"
+
     private fun updateWeather() {
-        weather.text = prefs.getString("wx_c", "")
+        val f = fahrenheit()
+        val key = if (f) "wx_f" else "wx_c"  // one cache per unit, so changing the setting refetches
+        weather.text = prefs.getString(key, "")
         val now = System.currentTimeMillis()
-        if (now - prefs.getLong("wx_c_at", 0) < WEATHER_MS) return
+        if (now - prefs.getLong("${key}_at", 0) < WEATHER_MS) return
         io.execute {
             val (lat, lon) = locate() ?: return@execute
-            val cur = fetch("https://api.open-meteo.com/v1/forecast?latitude=$lat&longitude=$lon&current=temperature_2m,weather_code")
+            val cur = fetch("https://api.open-meteo.com/v1/forecast?latitude=$lat&longitude=$lon&current=temperature_2m,weather_code" + if (f) "&temperature_unit=fahrenheit" else "")
                 ?.let { json(it)?.optJSONObject("current") } ?: return@execute
             val temp = cur.optDouble("temperature_2m").takeIf { !it.isNaN() } ?: return@execute
             val text = getString(R.string.weather, temp.roundToInt(), getString(sky(cur.optInt("weather_code"))))
-            prefs.edit().putString("wx_c", text).putLong("wx_c_at", now).apply()
+            prefs.edit().putString(key, text).putLong("${key}_at", now).apply()
             weather.post { weather.text = text }
         }
     }
