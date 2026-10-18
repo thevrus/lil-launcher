@@ -1,17 +1,18 @@
 # Debloat your Android TV
 
-Your TV runs a phone-grade operating system, and the company that sold it to you keeps working after you take it home: sponsored rows on the home screen, apps you never installed, telemetry services and background processes that eat a box with 2 GB of RAM. You can switch most of it off in about fifteen minutes, without root, and undo every step with one command.
+The company that sold you your TV never really stopped working on it. It still fills the home screen with sponsored rows, ships apps you didn't ask for, and runs telemetry in the background on a box that often has 2 GB of RAM to begin with.
 
-This guide covers Google TV and Android TV devices: NVIDIA Shield, Chromecast with Google TV, Google TV Streamer, Sony, TCL, Philips and Xiaomi sets, onn. boxes. Pair it with [Lil Launcher](README.md) so the home screen you land on is yours.
+Most of that can be switched off in about fifteen minutes. You don't need root, and every change undoes with one command. This works on Google TV and Android TV devices: NVIDIA Shield, Chromecast with Google TV, Google TV Streamer, Sony, TCL, Philips and Xiaomi sets, onn. boxes. Put [Lil Launcher](README.md) on top and the first thing you see when you turn the TV on is yours again.
 
 ## Why bother
 
-- **Ads where your apps should be.** The stock launchers sell the top of your screen. On the Shield, Google updates brought Glance, an ad-supported overlay with news feeds, into the Backdrop screensaver ([report](https://github.com/bryanroscoe/shield_optimizer/issues/123)).
-- **Your TV watches back.** Smart TVs use automatic content recognition (ACR) to fingerprint what is on screen. A 2024 audit of Samsung and LG sets found ACR kept running even when the TV was only a monitor for an HDMI device, and that the opt-out did stop the traffic ([IMC 2024](https://arxiv.org/abs/2409.06203)). Google TV's own software is not known to use ACR, but the TV maker's software can, so look for the switch in the brand's own settings menu.
-- **Trackers in the apps.** A Princeton study found trackers in 69% of Roku channels and 89% of Fire TV channels ([The Register](https://www.theregister.com/2019/10/01/your_smart_tv_is_watching_you_says_princeton_privacy_prof/)).
-- **Speed.** Fewer background services means more memory for the app you are actually watching, and a remote that answers on the first press.
+The ads are the obvious part. Stock launchers sell the top of the screen, and on the Shield even the screensaver got dragged in: a Google update put Glance, an ad-supported news overlay, into Backdrop ([report](https://github.com/bryanroscoe/shield_optimizer/issues/123)).
 
-People who have done it say the same things: "how fast the TV moves now" ([@doooyle](https://x.com/doooyle/status/2111247627748565091)), a set that showed "a sponsored ad before you could even get to Netflix" ([@gathint](https://x.com/gathint/status/2111379569030939102)), and sponsored tiles on a $1,600 TV from someone who "wasn't interested in becoming inventory too" ([@lazy_IT_guy](https://x.com/lazy_IT_guy/status/2103515875408310635)).
+The less obvious part is that many TVs watch what you watch. Automatic content recognition (ACR) fingerprints whatever is on screen. A 2024 audit of Samsung and LG sets found it kept running even when the TV was just a monitor for something plugged into HDMI, though turning it off in settings did stop the traffic ([IMC 2024](https://arxiv.org/abs/2409.06203)). Google TV itself isn't known to do this, but the TV maker's own software can, so the switch is usually buried in the brand's menus. The apps aren't much better: a Princeton study found trackers in 69% of Roku channels and 89% of Fire TV channels ([The Register](https://www.theregister.com/2019/10/01/your_smart_tv_is_watching_you_says_princeton_privacy_prof/)).
+
+And honestly, the reason most people notice first is speed. With fewer things running in the background, the app you're watching gets the memory, and the remote responds the first time you press it.
+
+You can hear it in what people post after they try it: "how fast the TV moves now" ([@doooyle](https://x.com/doooyle/status/2111247627748565091)), a set that showed "a sponsored ad before you could even get to Netflix" ([@gathint](https://x.com/gathint/status/2111379569030939102)), and sponsored tiles on a $1,600 TV from someone who "wasn't interested in becoming inventory too" ([@lazy_IT_guy](https://x.com/lazy_IT_guy/status/2103515875408310635)).
 
 ## The rules
 

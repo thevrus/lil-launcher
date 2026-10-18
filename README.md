@@ -1,6 +1,8 @@
 # Lil Launcher
 
-**A tiny, tvOS-inspired home screen for Android TV and Google TV.** No ads, no recommendation rows, no sponsored content: just your apps on a beautiful photo. Plain Views, one dependency, under 1 MB.
+A tiny home screen for Android TV and Google TV that borrows its manners from tvOS. Your apps sit on a photo, and that's it. There are no ads or sponsored rows, and nobody gets to decide what you should watch next.
+
+I built it for my NVIDIA Shield because I wanted the TV to feel like an Apple TV without buying one. It's plain Android Views with one dependency, and the APK is under 1 MB.
 
 [![Release](https://img.shields.io/github/v/release/thevrus/lil-launcher)](https://github.com/thevrus/lil-launcher/releases/latest)
 ![Android 9+](https://img.shields.io/badge/Android%20TV-9%2B-3ddc84)
@@ -8,16 +10,17 @@
 
 ![Lil Launcher home screen](docs/home.png)
 
-## Features
+## What's in it
 
-- **Photo of the day** from Bing as the backdrop, desaturated and dimmed per photo so the tiles stay readable. It changes on the hour.
-- **Apps by real use.** Ranked by foreground time over 30 days. Hold Select on a tile to move or hide it.
-- **Quiet header.** Time, date and current weather (Open-Meteo, no API key). It fades away as you scroll.
-- **Network at a glance.** Focus the globe for connection type, VPN exit country and a quick speed test with the video quality it supports.
-- **Screensaver.** The same photos full screen, with a slow drift, the time and the place name.
-- **Inputs** on TV sets: a button for HDMI ports and connected devices, shown only when the TV has them.
-- **Sleep** from the gear menu (hold Select on the gear).
-- **Lightweight.** No Leanback, no Compose, no tracking. Network work only happens when it is needed.
+- The backdrop is Bing's photo of the day. Each one is toned down so the tiles stay readable, and it changes on the hour.
+- Apps are sorted by how long you actually use them (foreground time over the last 30 days). Hold Select on a tile to move it or hide it.
+- The header shows the time, the date and the weather from Open-Meteo, and slides away when you scroll.
+- Focus the globe to see your connection, which country your VPN exits in, and a quick speed test that tells you whether 4K will hold up.
+- The screensaver shows the same photos full screen, drifting slowly, with the time and the place name.
+- On TV sets with HDMI ports, an Inputs button lists them, along with whatever is plugged in. Boxes like the Shield never see it.
+- Hold Select on the gear to put the TV to sleep.
+
+It doesn't use Leanback or Compose and has no analytics. It only goes online for the photo, the weather and the network info you ask for.
 
 | Network | Screensaver |
 | --- | --- |
@@ -25,13 +28,13 @@
 
 ## Debloat your TV too
 
-Lil Launcher pairs well with a debloated system: no sponsored rows, no telemetry services, more memory for what you watch. [DEBLOAT.md](DEBLOAT.md) explains why and how, lists which packages are safe to disable on Google TV, Shield, Sony and TCL, and includes a copy-paste prompt that lets Claude Code or any coding assistant do it for you, reversibly.
+A clean home screen only goes so far if the system underneath keeps phoning home. [DEBLOAT.md](DEBLOAT.md) is the rest of what I did to my Shield. It covers why it's worth the fifteen minutes, which packages are safe to turn off on Google TV, Shield, Sony and TCL, and a prompt you can paste into Claude Code (or any coding assistant) to have it do the work for you. Every step can be undone.
 
 ## Works on
 
-Any Android TV or Google TV device on Android 9 or later: NVIDIA Shield, Chromecast with Google TV, Google TV Streamer, Sony and TCL TVs, Xiaomi Mi Box, onn. 4K and more. Tested daily on an NVIDIA Shield.
+Any Android TV or Google TV device on Android 9 or later should work: NVIDIA Shield, Chromecast with Google TV, Google TV Streamer, Sony and TCL sets, Xiaomi Mi Box, onn. 4K. I use it every day on a Shield; the others are untested, so issues are welcome.
 
-Fire TV is not supported: Fire OS does not let third-party apps replace the home screen.
+Fire TV won't work, because Amazon doesn't let other apps take over the Home button.
 
 ## Install
 
