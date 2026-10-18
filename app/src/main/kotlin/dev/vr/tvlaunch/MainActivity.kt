@@ -5,13 +5,13 @@ import android.animation.ValueAnimator
 import android.app.Activity
 import android.app.AlertDialog
 import android.app.usage.UsageStatsManager
+import android.content.ActivityNotFoundException
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.media.tv.TvContract
-import android.media.tv.TvInputInfo
 import android.media.tv.TvInputManager
 import android.net.ConnectivityManager
 import android.net.Network
@@ -248,22 +248,32 @@ class MainActivity : Activity() {
 
     // Inputs: HDMI and other passthrough ports, for TVs whose stock launcher was the only way to switch.
     private lateinit var inputBtn: View
-    private var inputs: List<TvInputInfo> = emptyList()
+    /** Input id to label; HDMI-CEC devices carry their own names. */
+    private var inputs: List<Pair<String, String>> = emptyList()
+    private val liveTv by lazy { packageManager.hasSystemFeature(PackageManager.FEATURE_LIVE_TV) }
 
-    private fun updateInputs() = io.execute {
-        val list = if (!packageManager.hasSystemFeature(PackageManager.FEATURE_LIVE_TV)) emptyList()
-            else getSystemService(TvInputManager::class.java)?.tvInputList.orEmpty().filter { it.isPassthroughInput && !it.isHidden(this) }
-        inputBtn.post { inputs = list; inputBtn.visibility = if (list.isEmpty()) View.GONE else View.VISIBLE }
+    private fun updateInputs() {
+        io.execute {
+            val list = if (!liveTv) emptyList() else getSystemService(TvInputManager::class.java)?.tvInputList.orEmpty()
+                .filter { it.isPassthroughInput && !it.isHidden(this) }
+                .map { it.id to (it.loadCustomLabel(this) ?: it.loadLabel(this)).toString() }
+            inputBtn.post { inputs = list; inputBtn.visibility = if (list.isEmpty()) View.GONE else View.VISIBLE }
+        }
     }
 
-    /** The TV's own input app tunes to a passthrough channel URI; HDMI-CEC devices carry their own names. */
+    /** The TV's own input app tunes to a passthrough channel URI. */
     private fun inputMenu() {
-        val list = inputs.takeIf { it.isNotEmpty() } ?: return
+        if (inputs.isEmpty()) return
+        val list = inputs
         AlertDialog.Builder(this).setTitle(R.string.inputs)
-            .setItems(list.map { (it.loadCustomLabel(this) ?: it.loadLabel(this)).toString() }.toTypedArray()) { _, i ->
-                try { startActivity(Intent(Intent.ACTION_VIEW, TvContract.buildChannelUriForPassthroughInput(list[i].id))) }
-                catch (_: android.content.ActivityNotFoundException) { }
+            .setItems(list.map { it.second }.toTypedArray()) { _, i ->
+                open(Intent(Intent.ACTION_VIEW, TvContract.buildChannelUriForPassthroughInput(list[i].first)))
             }.show()
+    }
+
+    /** Starts [i], or the main Settings screen when nothing on this device handles it. */
+    private fun open(i: Intent) {
+        try { startActivity(i) } catch (_: ActivityNotFoundException) { startActivity(Intent(Settings.ACTION_SETTINGS)) }
     }
 
     private fun options() {
@@ -299,10 +309,7 @@ class MainActivity : Activity() {
         vpnDot = findViewById(R.id.vpnDot)
         findViewById<View>(R.id.netBtn).apply {
             setOnFocusChangeListener { _, f -> if (f) showPopover() else hidePopover() }
-            setOnClickListener {
-                val net = Intent(Settings.ACTION_WIFI_SETTINGS)
-                startActivity(if (net.resolveActivity(packageManager) != null) net else Intent(Settings.ACTION_SETTINGS))
-            }
+            setOnClickListener { open(Intent(Settings.ACTION_WIFI_SETTINGS)) }
         }
         val header = findViewById<View>(R.id.header)
         val shift = -resources.getDimension(R.dimen.header_shift)
@@ -328,8 +335,8 @@ class MainActivity : Activity() {
             registerNetworkCallback(vpnRequest, vpnWatch)
             registerDefaultNetworkCallback(netWatch)
         }
-        updateWeather()
         updateInputs()
+        updateWeather()
         poke()
         refresh()
     }
