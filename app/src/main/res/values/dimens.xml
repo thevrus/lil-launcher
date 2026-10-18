@@ -1,0 +1,11 @@
+<resources>
+    <dimen name="overscan_h">52dp</dimen>
+    <dimen name="overscan_v">32dp</dimen>
+    <dimen name="tile_w">160dp</dimen>
+    <dimen name="tile_h">92dp</dimen>
+    <dimen name="tile_radius">15dp</dimen>
+    <dimen name="tile_gap_h">7dp</dimen>
+    <dimen name="tile_gap_v">18dp</dimen>
+    <dimen name="label_gap">9dp</dimen>
+    <dimen name="header_shift">12dp</dimen>
+</resources>

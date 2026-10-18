@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent" android:background="#000000">
+    <ImageView android:id="@+id/photo"
+        android:layout_width="match_parent" android:layout_height="match_parent"
+        android:scaleType="centerCrop" android:importantForAccessibility="no"/>
+    <View android:layout_width="match_parent" android:layout_height="match_parent" android:background="@drawable/dream_scrim"/>
+    <TextClock android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:layout_gravity="top|end" android:layout_marginTop="@dimen/overscan_v" android:layout_marginEnd="@dimen/overscan_h"
+        android:format12Hour="h:mm" android:format24Hour="HH:mm"
+        android:textSize="30sp" android:letterSpacing="-0.03" android:textColor="@color/ink" android:alpha="0.9"
+        android:fontFamily="@font/inter_semibold" android:includeFontPadding="false"
+        android:shadowColor="@color/text_shadow" android:shadowDy="1" android:shadowRadius="8"/>
+    <TextView android:id="@+id/caption" style="@style/Text.Small"
+        android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:layout_gravity="bottom|start" android:layout_marginStart="@dimen/overscan_h" android:layout_marginBottom="@dimen/overscan_v"
+        android:layout_marginEnd="@dimen/overscan_h" android:maxLines="1" android:ellipsize="end"
+        android:textSize="15sp" android:textColor="@color/ink" android:alpha="0"
+        android:shadowColor="@color/text_shadow" android:shadowDy="1" android:shadowRadius="8"/>
+</FrameLayout>

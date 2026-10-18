@@ -1,0 +1,17 @@
+<resources>
+    <color name="bg">#1A1A1C</color>
+    <color name="ink">#F5F4F2</color>
+    <color name="ink_dim">#C9C7C3</color>
+    <color name="ink_on_light">#1C1C1E</color>
+    <color name="tile">#2A2A2E</color>
+    <color name="focus_ring">#8CFFFFFF</color>
+    <color name="text_shadow">#CC000000</color>
+    <color name="scrim_top">#8C1A1A1C</color>
+    <color name="scrim_mid">#A61A1A1C</color>
+    <color name="scrim_bottom">#E01A1A1C</color>
+    <color name="vpn_on">#5BD67A</color>
+    <color name="popover">#CC141416</color>
+    <color name="popover_rim">#26FFFFFF</color>
+    <color name="brand_bg">#1C1A18</color>
+    <color name="brand_fg">#F3F1EC</color>
+</resources>
