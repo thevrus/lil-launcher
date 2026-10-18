@@ -6,7 +6,7 @@ import android.provider.Settings
 import android.view.accessibility.AccessibilityEvent
 
 /**
- * Apps cannot sleep the device directly, and the Shield has no device-admin feature for lockNow(). The lock-screen
+ * Apps cannot sleep the device directly, and TV boxes usually lack the device-admin feature lockNow() needs. The lock-screen
  * global action is the one path left. The service is only switched on for that moment: while any accessibility service
  * runs, the system wakes the screensaver straight away.
  */
