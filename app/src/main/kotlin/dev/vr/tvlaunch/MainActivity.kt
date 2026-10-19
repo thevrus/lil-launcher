@@ -68,7 +68,8 @@ class MainActivity : Activity() {
 
     /** Green dot on the globe while any VPN tunnel is up; the system does not say which app owns it. */
     private val vpnWatch = object : ConnectivityManager.NetworkCallback() {
-        private val up = HashSet<Network>()
+        /** Cleared on unregister: onLost never arrives for a tunnel that drops while the callback is off. */
+        val up = HashSet<Network>()
         override fun onAvailable(n: Network) { up += n; set() }
         override fun onLost(n: Network) { up -= n; set() }
         private fun set() = vpnDot.post {
@@ -356,6 +357,7 @@ class MainActivity : Activity() {
         photos.stop()
         unregisterReceiver(packageChanges)
         getSystemService(ConnectivityManager::class.java).apply { unregisterNetworkCallback(vpnWatch); unregisterNetworkCallback(netWatch) }
+        vpnWatch.up.clear(); vpnUp = false; vpnCountry = null; vpnDot.visibility = View.GONE
     }
 
     private fun refresh() {
