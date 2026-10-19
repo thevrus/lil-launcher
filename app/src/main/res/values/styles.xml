@@ -11,4 +11,14 @@
         <item name="android:fontFamily">@font/inter_medium</item>
         <item name="android:textColor">@color/ink_dim</item>
     </style>
+    <style name="Chip" parent="">
+        <item name="android:layout_width">@dimen/chip</item>
+        <item name="android:layout_height">@dimen/chip</item>
+        <item name="android:layout_marginStart">@dimen/chip_gap</item>
+        <item name="android:padding">10dp</item>
+        <item name="android:background">@drawable/gear_bg</item>
+        <item name="android:tint">@color/gear_tint</item>
+        <item name="android:focusable">true</item>
+        <item name="android:focusableInTouchMode">true</item>
+    </style>
 </resources>

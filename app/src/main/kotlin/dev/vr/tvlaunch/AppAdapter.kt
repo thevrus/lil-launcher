@@ -6,7 +6,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.animation.PathInterpolator
 import android.widget.ImageView
-import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
 data class AppEntry(val pkg: String, val label: String, val banner: Drawable?, val icon: Drawable)
@@ -31,8 +30,9 @@ class AppAdapter(
         h.tile.setOnFocusChangeListener { t, f ->
             if (!f) t.rotation = 0f
             val sc = if (f) FOCUS_SCALE else 1f
-            t.animate().scaleX(sc).scaleY(sc).setDuration(260).setInterpolator(ease).withLayer().start()
-            h.label.animate().alpha(if (f) 1f else 0f).setDuration(if (f) 160 else 100).start()
+            // tvOS-style lift: the shadow grows with the scale, and the raised tile draws over its neighbours.
+            val z = if (f) t.resources.getDimension(R.dimen.tile_lift) else 0f
+            t.animate().scaleX(sc).scaleY(sc).translationZ(z).setDuration(260).setInterpolator(ease).start()
         }
         // NO_POSITION between a data change and the next layout pass.
         h.tile.setOnClickListener { items.getOrNull(h.bindingAdapterPosition)?.let(onClick) }
@@ -44,15 +44,13 @@ class AppAdapter(
         val e = items[pos]
         h.tile.setImageDrawable(e.banner ?: e.icon)
         h.tile.scaleType = if (e.banner != null) ImageView.ScaleType.CENTER_CROP else ImageView.ScaleType.CENTER_INSIDE
-        h.label.text = e.label
-        h.label.alpha = if (h.tile.isFocused) 1f else 0f
-        if (!h.tile.isFocused) { h.tile.rotation = 0f; h.tile.scaleX = 1f; h.tile.scaleY = 1f }
+        h.tile.contentDescription = e.label
+        if (!h.tile.isFocused) { h.tile.rotation = 0f; h.tile.scaleX = 1f; h.tile.scaleY = 1f; h.tile.translationZ = 0f }
     }
 
-    companion object { const val FOCUS_SCALE = 1.05f }
+    companion object { const val FOCUS_SCALE = 1.07f }
 
     class VH(v: View) : RecyclerView.ViewHolder(v) {
         val tile: ImageView = v.findViewById(R.id.tile)
-        val label: TextView = v.findViewById(R.id.label)
     }
 }

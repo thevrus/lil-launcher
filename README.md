@@ -14,7 +14,8 @@ I built it for my NVIDIA Shield because I wanted the TV to feel like an Apple TV
 
 - The backdrop is Bing's photo of the day. Each one is toned down so the tiles stay readable, and it changes on the hour.
 - Apps are sorted by how long you actually use them (foreground time over the last 30 days). Hold Select on a tile to move it or hide it.
-- The header shows the time, the date and the weather from Open-Meteo, and slides away when you scroll.
+- The header greets you for the time of day and shows the TV's name, your city, the time, the date, the weather and the next sunrise or sunset from Open-Meteo. It scrolls away with the apps. The city comes from your saved location, so a VPN doesn't move it.
+- The focused tile lifts with a glassy sheen and a soft shadow, the way tvOS does it.
 - Focus the globe to see your connection, which country your VPN exits in, and a quick speed test that tells you whether 4K will hold up.
 - The screensaver shows the same photos full screen, drifting slowly, with the time and the place name.
 - On TV sets with HDMI ports, an Inputs button lists them, along with whatever is plugged in. Boxes like the Shield never see it.

@@ -4,14 +4,17 @@
     <color name="ink_dim">#C9C7C3</color>
     <color name="ink_on_light">#1C1C1E</color>
     <color name="tile">#2A2A2E</color>
-    <color name="focus_ring">#8CFFFFFF</color>
+    <color name="glass">#1FFFFFFF</color>
+    <color name="glass_sheen">#24FFFFFF</color>
+    <color name="glass_rim">#40FFFFFF</color>
+    <color name="tile_sheen">#38FFFFFF</color>
+    <color name="spark">#E6D7B8</color>
     <color name="text_shadow">#CC000000</color>
-    <color name="scrim_top">#8C1A1A1C</color>
-    <color name="scrim_mid">#A61A1A1C</color>
+    <color name="scrim_top">#4D1A1A1C</color>
+    <color name="scrim_mid">#801A1A1C</color>
     <color name="scrim_bottom">#E01A1A1C</color>
     <color name="vpn_on">#5BD67A</color>
-    <color name="popover">#CC141416</color>
-    <color name="popover_rim">#26FFFFFF</color>
+    <color name="popover">#B3202022</color>
     <color name="brand_bg">#1C1A18</color>
     <color name="brand_fg">#F3F1EC</color>
 </resources>

@@ -17,6 +17,7 @@ import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
+import android.text.format.DateFormat
 import android.widget.TextView
 import android.net.Uri
 import android.os.Bundle
@@ -26,6 +27,11 @@ import android.view.View
 import android.view.ViewTreeObserver
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.util.Date
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import kotlin.math.roundToInt
@@ -41,7 +47,7 @@ class MainActivity : Activity() {
 
     private companion object {
         const val TEST_MS = 4000L
-        const val SPAN = 5
+        const val SPAN = 4
         const val IDLE_MS = 12_000L
         val WEATHER_MS = TimeUnit.HOURS.toMillis(1)
     }
@@ -58,6 +64,7 @@ class MainActivity : Activity() {
         set(v) = prefs.edit().putString("order", v.joinToString("\n")).apply()
 
     private lateinit var popover: View
+    private lateinit var netBtn: View
     private lateinit var popNet: TextView
     private lateinit var popVpn: TextView
     private lateinit var popRate: TextView
@@ -143,6 +150,7 @@ class MainActivity : Activity() {
     private fun fetch(url: String): String? = try {
         (java.net.URL(url).openConnection() as java.net.HttpURLConnection).run {
             connectTimeout = 5000; readTimeout = 5000
+            setRequestProperty("User-Agent", "LilLauncher (Android TV)")  // OpenStreetMap refuses requests without one
             try { inputStream.use { it.readBytes().toString(Charsets.UTF_8) } } finally { disconnect() }
         }
     } catch (_: Exception) { null }
@@ -192,8 +200,9 @@ class MainActivity : Activity() {
         refresh()
     }
 
-    // Weather: current conditions beside the date, refreshed at most hourly.
+    // Weather and the sun: current conditions and the next sunrise or sunset under the greeting, refreshed at most hourly.
     private lateinit var weather: TextView
+    private lateinit var city: TextView
 
     /**
      * Android 14 regional preferences put the temperature unit on the locale as the "mu" extension. Older systems
@@ -203,19 +212,83 @@ class MainActivity : Activity() {
 
     private fun updateWeather() {
         val f = fahrenheit()
-        val key = if (f) "wx_f" else "wx_c"  // one cache per unit, so changing the setting refetches
-        weather.text = prefs.getString(key, "")
+        val key = if (f) "sky_f" else "sky_c"  // one cache per unit, so changing the setting refetches
+        showWeather(key)
         val now = System.currentTimeMillis()
-        if (now - prefs.getLong("${key}_at", 0) < WEATHER_MS) return
+        val fresh = now - prefs.getLong("${key}_at", 0) < WEATHER_MS
+        if (fresh && prefs.contains("city")) return
         io.execute {
             val (lat, lon) = locate() ?: return@execute
-            val cur = fetch("https://api.open-meteo.com/v1/forecast?latitude=$lat&longitude=$lon&current=temperature_2m,weather_code" + if (f) "&temperature_unit=fahrenheit" else "")
-                ?.let { json(it)?.optJSONObject("current") } ?: return@execute
+            city.post { showCity() }
+            if (fresh) return@execute  // only the city was missing
+            val res = fetch("https://api.open-meteo.com/v1/forecast?latitude=$lat&longitude=$lon&current=temperature_2m,weather_code" +
+                "&daily=sunrise,sunset&forecast_days=2&timezone=auto" + if (f) "&temperature_unit=fahrenheit" else "")?.let { json(it) } ?: return@execute
+            val cur = res.optJSONObject("current") ?: return@execute
             val temp = cur.optDouble("temperature_2m").takeIf { !it.isNaN() } ?: return@execute
             val text = getString(R.string.weather, temp.roundToInt(), getString(sky(cur.optInt("weather_code"))))
-            prefs.edit().putString(key, text).putLong("${key}_at", now).apply()
-            weather.post { weather.text = text }
+            // The place's time zone, then sunrise and sunset for today and tomorrow in its local time ("2026-10-19T07:22").
+            val d = res.optJSONObject("daily")
+            val sun = listOf(res.optString("timezone")) + (0..1).flatMap { i -> listOf(d?.optJSONArray("sunrise")?.optString(i), d?.optJSONArray("sunset")?.optString(i)) }
+            val sunText = sun.takeIf { l -> l.all { !it.isNullOrEmpty() } }?.joinToString(" ")
+            prefs.edit().putString(key, text).putString("${key}_sun", sunText).putLong("${key}_at", now).apply()
+            weather.post { showWeather(key) }
         }
+    }
+
+    private fun showWeather(key: String) {
+        weather.text = listOfNotNull(prefs.getString(key, null), sunText(prefs.getString("${key}_sun", null))).joinToString("  ·  ")
+    }
+
+    /**
+     * The next sunrise or sunset from two cached days, read in the place's own time zone; the clock shown is the
+     * device's. Null when both days have passed.
+     */
+    private fun sunText(sun: String?): String? {
+        val parts = sun?.split(' ')?.takeIf { it.size == 5 } ?: return null
+        val zone = try { ZoneId.of(parts[0]) } catch (_: Exception) { return null }
+        val times = parts.drop(1).map { try { LocalDateTime.parse(it).atZone(zone) } catch (_: Exception) { return null } }
+        val now = ZonedDateTime.now(zone)
+        val i = times.indexOfFirst { it.isAfter(now) }.takeIf { it >= 0 } ?: return null
+        val res = when { i % 2 == 1 -> R.string.sunset; times[i].toLocalDate() == now.toLocalDate() -> R.string.sunrise; else -> R.string.sunrise_tomorrow }
+        if (i == 3 && times[i].toLocalDate() != now.toLocalDate()) return null  // a sunset tomorrow means the cache is a day old
+        return getString(res, DateFormat.getTimeFormat(this).format(Date.from(times[i].toInstant())))
+    }
+
+    /**
+     * The name set in the TV's settings ("Living room"), which can change while Home is away. The factory default is
+     * the bare model word ("SHIELD"), so that one gets the maker in front: "Nvidia Shield".
+     */
+    private fun deviceName(): String {
+        val name = Settings.Global.getString(contentResolver, Settings.Global.DEVICE_NAME)?.trim().orEmpty()
+        val model = android.os.Build.MODEL.substringBefore(' ')
+        if (name.isNotEmpty() && !name.equals(model, ignoreCase = true)) return name
+        fun word(w: String) = w.lowercase().replaceFirstChar { it.titlecase() }
+        return "${word(android.os.Build.MANUFACTURER)} ${word(model)}"
+    }
+
+    /** Blank until the city is known: the time zone's city is often hundreds of miles off. */
+    private fun showCity() {
+        val name = prefs.getString("city", null)
+        city.text = name
+        city.visibility = if (name.isNullOrBlank()) View.GONE else View.VISIBLE
+    }
+
+    // Greeting: follows the clock, checked on every minute tick.
+    private lateinit var greeting: TextView
+    private lateinit var subtitle: TextView
+    private val tick = object : BroadcastReceiver() {
+        override fun onReceive(c: Context, i: Intent) { updateGreeting() }
+    }
+
+    private fun updateGreeting() {
+        val (g, sub) = when (LocalTime.now().hour) {
+            in 5..11 -> R.string.greet_morning to R.string.sub_morning
+            in 12..16 -> R.string.greet_afternoon to R.string.sub_afternoon
+            in 17..21 -> R.string.greet_evening to R.string.sub_evening
+            else -> R.string.greet_night to R.string.sub_night
+        }
+        greeting.setText(g); subtitle.setText(sub)
+        showWeather(if (fahrenheit()) "sky_f" else "sky_c")  // the sun line moves on with the clock
     }
 
     /**
@@ -228,7 +301,14 @@ class MainActivity : Activity() {
         if (!vpn && !prefs.contains("loc")) fetch("https://ipwho.is/?fields=success,latitude,longitude")?.let { json(it) }
             ?.takeIf { it.optBoolean("success") && it.has("latitude") && it.has("longitude") }
             ?.let { prefs.edit().putString("loc", "${it.optDouble("latitude")},${it.optDouble("longitude")}").apply() }
-        prefs.getString("loc", null)?.split(',')?.let { return it[0] to it[1] }
+        prefs.getString("loc", null)?.split(',')?.let { (lat, lon) ->
+            // The city name comes from the remembered coordinates, never from the IP, so a VPN cannot move it.
+            if (!prefs.contains("city")) fetch("https://nominatim.openstreetmap.org/reverse?format=json&zoom=10&lat=$lat&lon=$lon" +
+                    "&accept-language=" + java.util.Locale.getDefault().toLanguageTag())
+                ?.let { json(it)?.optString("name") }?.takeIf { it.isNotBlank() }
+                ?.let { prefs.edit().putString("city", it).apply() }
+            return lat to lon
+        }
         val city = java.util.TimeZone.getDefault().id.substringAfterLast('/').replace('_', ' ')
         return fetch("https://geocoding-api.open-meteo.com/v1/search?count=1&name=" + java.net.URLEncoder.encode(city, "UTF-8"))
             ?.let { json(it)?.optJSONArray("results")?.optJSONObject(0) }
@@ -308,6 +388,10 @@ class MainActivity : Activity() {
         grid.setHasFixedSize(true)
         caption = findViewById(R.id.caption)
         weather = findViewById(R.id.weather)
+        city = findViewById(R.id.city)
+        greeting = findViewById(R.id.greeting)
+        subtitle = findViewById(R.id.subtitle)
+        netBtn = findViewById(R.id.netBtn)
         photos = Photos(findViewById(R.id.photo), onShow = { caption.text = it })
         findViewById<View>(R.id.settingsBtn).apply {
             setOnClickListener { startActivity(Intent(Settings.ACTION_SETTINGS)) }
@@ -317,19 +401,27 @@ class MainActivity : Activity() {
         inputBtn = findViewById<View>(R.id.inputBtn).apply { setOnClickListener { inputMenu() } }
         popover = findViewById(R.id.popover); popNet = findViewById(R.id.popNet); popVpn = findViewById(R.id.popVpn); popRate = findViewById(R.id.popRate)
         vpnDot = findViewById(R.id.vpnDot)
-        findViewById<View>(R.id.netBtn).apply {
+        // Centered under the globe and inside the right overscan line, again whenever the speed text changes its width.
+        popover.addOnLayoutChangeListener { v, _, _, _, _, _, _, _, _ ->
+            val at = IntArray(2).also { netBtn.getLocationInWindow(it) }
+            val max = (v.parent as View).width - resources.getDimension(R.dimen.overscan_h) - v.width
+            v.x = (at[0] + netBtn.width / 2f - v.width / 2f).coerceAtMost(max)
+        }
+        netBtn.apply {
             setOnFocusChangeListener { _, f -> if (f) showPopover() else hidePopover() }
             setOnClickListener { open(Intent(Settings.ACTION_WIFI_SETTINGS)) }
         }
+        // The header rides on top of the grid's first rows and scrolls away with them, fading as it goes.
         val header = findViewById<View>(R.id.header)
-        val shift = -resources.getDimension(R.dimen.header_shift)
+        header.addOnLayoutChangeListener { v, _, _, _, bottom, _, _, _, _ ->
+            val top = bottom - v.paddingBottom + (resources.displayMetrics.density * 32).roundToInt()
+            if (grid.paddingTop != top) grid.post { grid.setPadding(grid.paddingLeft, top, grid.paddingRight, grid.paddingBottom) }
+        }
         grid.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-            var shifted = false
             override fun onScrolled(rv: RecyclerView, dx: Int, dy: Int) {
-                val hide = rv.computeVerticalScrollOffset() > header.height / 2
-                if (hide == shifted) return
-                shifted = hide
-                header.animate().alpha(if (hide) 0f else 1f).translationY(if (hide) shift else 0f).setDuration(220).withLayer().start()
+                val off = rv.computeVerticalScrollOffset().toFloat()
+                header.translationY = -off
+                header.alpha = (1f - off / (header.height * 0.3f)).coerceIn(0f, 1f)
             }
         })
     }
@@ -345,6 +437,10 @@ class MainActivity : Activity() {
             registerNetworkCallback(vpnRequest, vpnWatch)
             registerDefaultNetworkCallback(netWatch)
         }
+        registerReceiver(tick, IntentFilter(Intent.ACTION_TIME_TICK))
+        updateGreeting()
+        showCity()
+        findViewById<TextView>(R.id.deviceName).text = deviceName()
         updateInputs()
         updateWeather()
         poke()
@@ -357,6 +453,7 @@ class MainActivity : Activity() {
         caption.removeCallbacks(idle)
         photos.stop()
         unregisterReceiver(packageChanges)
+        unregisterReceiver(tick)
         getSystemService(ConnectivityManager::class.java).apply { unregisterNetworkCallback(vpnWatch); unregisterNetworkCallback(netWatch) }
         vpnWatch.reset()
     }
@@ -459,13 +556,19 @@ class MainActivity : Activity() {
             }.show()
     }
 
-    /** Up from the first row goes to the globe; the default focus search would pick the gear. */
+    /**
+     * Up from the first row goes to the globe; the default focus search would pick the gear. Reaching the first row
+     * scrolls all the way back so the header is whole again.
+     */
     override fun dispatchKeyEvent(e: KeyEvent): Boolean {
         if (e.action == KeyEvent.ACTION_DOWN) poke()
         if (moving >= 0 || (e.keyCode == swallowUp && e.action == KeyEvent.ACTION_UP)) return moveKey(e)
         if (e.action == KeyEvent.ACTION_DOWN && e.keyCode == KeyEvent.KEYCODE_DPAD_UP) {
             val pos = focusedPos() ?: return super.dispatchKeyEvent(e)
-            if (pos < SPAN) { findViewById<View>(R.id.netBtn).requestFocus(); return true }
+            if (pos < SPAN) { netBtn.requestFocus(); return true }
+            val handled = super.dispatchKeyEvent(e)
+            if ((focusedPos() ?: SPAN) < SPAN) grid.smoothScrollBy(0, -grid.computeVerticalScrollOffset())
+            return handled
         }
         return super.dispatchKeyEvent(e)
     }

@@ -1,11 +1,14 @@
 <resources>
-    <dimen name="overscan_h">52dp</dimen>
-    <dimen name="overscan_v">32dp</dimen>
-    <dimen name="tile_w">160dp</dimen>
-    <dimen name="tile_h">92dp</dimen>
+    <dimen name="overscan_h">60dp</dimen>
+    <dimen name="overscan_v">30dp</dimen>
+    <!-- Tiles sit on the overscan line: grid padding plus the tile's own side margin. -->
+    <dimen name="grid_pad_h">51dp</dimen>
+    <dimen name="tile_gap_h">9dp</dimen>
+    <dimen name="tile_gap_v">10dp</dimen>
+    <dimen name="tile_h">110dp</dimen>
     <dimen name="tile_radius">15dp</dimen>
-    <dimen name="tile_gap_h">7dp</dimen>
-    <dimen name="tile_gap_v">18dp</dimen>
-    <dimen name="label_gap">9dp</dimen>
-    <dimen name="header_shift">12dp</dimen>
+    <dimen name="chip">38dp</dimen>
+    <dimen name="chip_gap">8dp</dimen>
+    <dimen name="chip_radius">19dp</dimen>
+    <dimen name="tile_lift">14dp</dimen>
 </resources>

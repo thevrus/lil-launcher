@@ -1,4 +1,4 @@
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:state_focused="true"><shape android:shape="oval"><solid android:color="@color/ink"/></shape></item>
-    <item android:drawable="@android:color/transparent"/>
+    <item android:state_focused="true"><shape><solid android:color="@color/ink"/><corners android:radius="@dimen/chip_radius"/></shape></item>
+    <item android:drawable="@drawable/glass_bg"/>
 </selector>
